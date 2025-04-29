@@ -44,7 +44,7 @@ export default async function handler(req) {
       );
     }
   }
-
+  console.log("📤 RESPONSE SENT TO VAPI:", JSON.stringify(responsePayload));
   return new Response(
     JSON.stringify({ message: "Not a transfer-destination-request" }),
     { status: 200, headers: { "Content-Type": "application/json" } }
