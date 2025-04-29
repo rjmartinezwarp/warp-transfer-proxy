@@ -9,13 +9,14 @@ export default async function handler(req) {
   const eventType = body?.event;
 
   if (eventType === "transfer-destination-request") {
-    const conversationHistory = body?.artifact?.messages || [];
+    const messagesArtifact = body?.artifact?.messages || [];
+    const messagesFormatted = body?.messagesOpenAIFormatted || [];
+    const allMessages = [...messagesArtifact, ...messagesFormatted];
 
     let intent = "unknown";
 
-    // Very basic keyword matching based on conversation
-    for (const message of conversationHistory) {
-      const text = message?.message?.toLowerCase() || "";
+    for (const message of allMessages) {
+      const text = (message?.message || message?.content || "").toLowerCase();
 
       if (text.includes("dispatch") || text.includes("delivery") || text.includes("warehouse")) {
         intent = "dispatch";
@@ -51,7 +52,7 @@ export default async function handler(req) {
           destination: {
             type: "number",
             message: "Connecting you to our main line.",
-            number: "+12135550123", // fallback
+            number: "+12135550123",
             numberE164CheckEnabled: true
           }
         }),
@@ -60,9 +61,8 @@ export default async function handler(req) {
     }
   }
 
-  // Fallback if not a transfer-destination-request
   return new Response(
-    JSON.stringify({ message: "Non-transfer event" }),
+    JSON.stringify({ message: "Not a transfer-destination-request" }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
