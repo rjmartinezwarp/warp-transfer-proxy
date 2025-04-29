@@ -9,37 +9,21 @@ export default async function handler(req) {
   const eventType = body?.event;
 
   if (eventType === "transfer-destination-request") {
-    const messagesArtifact = body?.artifact?.messages || [];
-    const messagesFormatted = body?.messagesOpenAIFormatted || [];
-    const allMessages = [...messagesArtifact, ...messagesFormatted];
-
-    let intent = "unknown";
-
-    for (const message of allMessages) {
-      const text = (message?.message || message?.content || "").toLowerCase();
-
-      if (text.includes("dispatch") || text.includes("delivery") || text.includes("warehouse")) {
-        intent = "dispatch";
-        break;
-      } else if (text.includes("bid") || text.includes("posted load") || text.includes("carrier sales")) {
-        intent = "carrier_sales";
-        break;
-      }
-    }
+    const destination = body?.function?.arguments?.destination;
 
     const routingMap = {
       dispatch: "+12132695125",
       carrier_sales: "+12132694511"
     };
 
-    const phoneNumber = routingMap[intent];
+    const phoneNumber = routingMap[destination];
 
     if (phoneNumber) {
       return new Response(
         JSON.stringify({
           destination: {
             type: "number",
-            message: `Connecting you to our ${intent === "dispatch" ? "Dispatch" : "Carrier Sales"} team.`,
+            message: `Connecting you to our ${destination === "carrier_sales" ? "Carrier Sales" : "Dispatch"} team.`,
             number: phoneNumber,
             numberE164CheckEnabled: true
           }
