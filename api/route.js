@@ -6,26 +6,36 @@ export default async function handler(req) {
   const body = await req.json();
   console.log("INCOMING BODY:", JSON.stringify(body));
 
-  const eventType = body?.event;
+  const destinationKey = body?.function?.arguments?.destination || "unknown";
 
-  if (eventType === "transfer-destination-request") {
-    // Dynamically choose destination — here we're just hardcoding Dispatch
+  const routingMap = {
+    dispatch: "+12132695125",
+    carrier_sales: "+12132694511"
+  };
+
+  const phoneNumber = routingMap[destinationKey];
+
+  if (phoneNumber) {
     return new Response(
       JSON.stringify({
         destination: {
           type: "number",
-          message: "Connecting you to our Dispatch team.",
-          number: "+12132695125",
-          numberE164CheckEnabled: true,
-          callerId: "+12136033597" // optional, but useful
+          number: phoneNumber,
+          numberE164CheckEnabled: true
+        }
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  } else {
+    return new Response(
+      JSON.stringify({
+        destination: {
+          type: "number",
+          number: "+12135550123", // fallback dummy number if needed
+          numberE164CheckEnabled: true
         }
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   }
-
-  return new Response(
-    JSON.stringify({ message: "Not a transfer-destination-request" }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
-  );
 }
